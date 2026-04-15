@@ -1,230 +1,211 @@
-# TSE Investigation Workspace
+# POD TSE Investigation Hub
 
-Centralized workspace for Technical Support Engineers working on Datadog customer cases.
+AI-powered investigation workspace for Technical Support Engineers at Datadog. Combines [Cursor AI](https://cursor.com) with MCP integrations (Glean, JIRA, Confluence, GitHub) and a local web dashboard to streamline ticket investigation, customer communication, and engineering escalation.
 
-> **New here?** Follow the **[Setup Guide](SETUP.md)** for step-by-step instructions.
+> **New here?** Follow the **[Setup Guide](SETUP.md)** (5 minutes) or jump to **[Quick Start](QUICK_START.md)**.
 
 ---
 
 ## Quick Start
 
-### 1. Clone/Create the workspace
 ```bash
-cd ~/
-git clone git@github.com:YOUR_ORG/tse-investigation-hub.git
-# OR if starting fresh:
-mkdir tse-investigation-hub && cd tse-investigation-hub
-```
+# 1. Clone and open in Cursor
+git clone https://github.com/patrickoddatadog/pod-tse-investigation-hub.git
+cd pod-tse-investigation-hub
+cursor .
 
-### 2. Set up credentials
-```bash
+# 2. Set up credentials
 cp .env.example .env
-# Edit .env with your Zendesk, Atlassian, and GitHub tokens
+# Edit .env with your Zendesk, Atlassian, GitHub, and OpenAI tokens
+
+# 3. Install Python dependencies
+pip install -r requirements.txt
+
+# 4. Restart Cursor (Cmd+Q, reopen)
+# Atlassian and Glean use SSO — they'll prompt on first use
 ```
 
-### 3. Configure MCP (Cursor AI)
-```bash
-cp .cursor/mcp.json.example .cursor/mcp.json
-# Edit .cursor/mcp.json with your tokens
-```
+Then ask Cursor:
+> "Investigate Zendesk ticket 2864882"
 
-### 4. Install dependencies
-```bash
-# Install uv (for MCP servers)
-curl -LsSf https://astral.sh/uv/install.sh | sh
-```
+---
 
-### 5. Restart Cursor
-Quit completely (Cmd+Q) and reopen.
+## What It Does
 
-### 6. Test it
-Ask Cursor:
-> "Use MCP to fetch Zendesk ticket 12345"
+| Capability | How |
+|---|---|
+| **Investigate tickets** | Ask Cursor to investigate any Zendesk ticket — it fetches context via Glean, searches for similar cases, and creates structured investigation notes |
+| **Web dashboard** | Local Flask app at `localhost:8501` with tabbed case views (overview, investigation, Zoom prep, leadership summary, handover, escalation) |
+| **Zoom transcription** | Upload call recordings — Whisper transcribes, OpenAI summarises for a technical audience |
+| **Auto-generated outputs** | Every investigation produces a customer response draft, Zoom prep, leadership summary, TLDR handover, and escalation summary |
+| **One-click escalation** | Generate JIRA-ready escalation summaries from investigation notes |
+| **Customer communication** | Pre-built templates for acknowledgments, info requests, solutions, escalation notices |
 
 ---
 
 ## Structure
 
 ```
-tse-investigation-hub/
+pod-tse-investigation-hub/
 ├── .cursor/
-│   ├── mcp.json              # YOUR config (gitignored)
-│   └── mcp.json.example      # Template
-├── .cursorrules              # AI behavior for TSEs
-├── cases/                    # Active customer cases
-│   ├── .template/            # Template for new cases
-│   └── ZD-XXXXXX/            # One folder per ticket (gitignored)
-├── archive/                  # Archived cases by month (gitignored)
-├── docs/                     # Product documentation
-│   ├── apm/                  # Application Performance Monitoring
-│   ├── infrastructure/       # Infrastructure monitoring
-│   ├── logs/                 # Log management
-│   ├── rum/                  # Real User Monitoring
-│   ├── synthetics/           # Synthetic monitoring
-│   ├── security/             # Security products
-│   ├── network/              # Network monitoring
-│   ├── platform/             # Billing, API, auth
-│   └── common/               # Agent, integrations
-├── templates/                # Customer communication templates
-│   ├── customer-communication/
-│   └── escalation/
-├── solutions/                # Known issues & workarounds
-├── scripts/                  # Utility scripts
-└── reference/                # Reference materials
+│   ├── rules/                # AI behavior rules (9 rules)
+│   ├── hooks/                # Session hooks (transcript & escalation checks)
+│   ├── skills/               # Investigation skills (investigator, classifier, pool, attachments)
+│   └── hooks.json
+├── app.py                    # POD Ticket Dashboard (Flask)
+├── cases/                    # Active cases (gitignored)
+│   ├── .template/            # Template for new case folders
+│   └── ZD-XXXXXX/            # One folder per ticket
+├── archive/                  # Resolved cases (gitignored)
+├── templates/                # Customer communication & escalation templates
+├── docs/                     # Escalation criteria, product docs
+├── scripts/                  # CLI tools (JIRA, Zendesk, transcription, server)
+├── web/                      # Dashboard HTML templates & CSS
+├── reference/                # JIRA project codes
+├── requirements.txt
+└── .env.example
 ```
+
+See [STRUCTURE.md](STRUCTURE.md) for the full breakdown of every file.
 
 ---
 
-## Workflow
+## POD Ticket Dashboard
 
-### Starting a Case Investigation
+Local web UI for visualizing investigations. Optional — the workspace works fully through Cursor alone.
 
-**Option 1: Ask Cursor**
+```bash
+python3 app.py
+# or
+./scripts/start-server.sh
+```
+
+Then open **http://localhost:8501**.
+
+**Dashboard tabs** (each renders a `##` section from `notes.md`):
+- **Overview** — issue summary and proposed customer response
+- **Investigation Notes** — full investigation documentation
+- **Zoom Call** — call preparation agenda
+- **Zoom Call Transcript** — upload audio, auto-transcribe, summarise
+- **Leadership Summary** — non-technical summary for managers
+- **TLDR Handover** — technical handover for other TSEs
+- **Escalation** — generate JIRA-ready escalation summaries
+
+---
+
+## Investigation Workflow
+
+**Ask Cursor:**
 > "Investigate Zendesk ticket 12345"
 
 Cursor will:
-1. Fetch the ticket from Glean
-2. Assess what info you have
-3. Search for similar historical cases
-4. Create case notes in `cases/ZD-12345/`
+1. Fetch the ticket via Glean
+2. Search for similar historical cases in JIRA, Confluence, and the archive
+3. Create a case folder in `cases/ZD-12345/`
+4. Generate `notes.md` with all mandatory sections
 
-**Option 2: Manual**
-```bash
-cp -r cases/.template cases/ZD-12345
-```
+**During investigation:**
+- Ask Cursor to search Confluence, JIRA, GitHub, Glean, or Slack (via Glean)
+- Drop logs, screenshots, recordings into `cases/ZD-12345/assets/`
+- Document findings in `notes.md` — the dashboard renders each section as a tab
 
-### During Investigation
-- Cursor pulls live Zendesk data via MCP
-- Drop logs, screenshots, flares into `cases/ZD-12345/assets/`
-- Document findings in `notes.md`
-- Search archive for similar past cases
-- Check `solutions/known-issues.md` for tracked bugs
+**Zoom call workflow:**
+1. Upload audio via the dashboard's Zoom Call Transcript tab
+2. Whisper transcribes automatically
+3. Click **Summarise** for an OpenAI-generated structured summary
 
-### Customer Communication
-Use templates from `templates/customer-communication/`:
-- Acknowledgment
-- Requesting information
-- Providing solution
-- Escalation notice
+**Escalation workflow:**
+1. Document findings in `notes.md`
+2. Click **Generate Escalation Summary** on the Escalation tab
+3. Ask Cursor: `"Create JIRA escalation for ZD-12345"`
 
-### When to Escalate to Engineering
-Check `docs/escalation-criteria.md` for guidance on:
-- When to escalate vs. continue troubleshooting
-- What info to include in escalation
-- How to create JIRA escalation ticket
+---
 
-### Archiving Cases
-```bash
-python scripts/zendesk_client.py archive 12345
-```
+## Cursor Rules, Skills & Hooks
+
+### Rules (`.cursor/rules/`)
+
+| Rule | Purpose |
+|------|---------|
+| `investigation-workflow` | Step-by-step investigation process |
+| `mandatory-outputs` | Ensures all required sections in `notes.md` |
+| `customer-communication` | Brief-first tone, template usage |
+| `escalation-criteria` | When and how to escalate |
+| `risk-assessment` | Rollback/risk checklist for config changes |
+| `zoom-transcript` | Auto-summarisation pipeline |
+| `api-access-constraints` | Read/write boundaries per service |
+| `tse-context` | Role context and workspace layout |
+| `output-standards` | File structure and data protection |
+
+### Skills (`.cursor/skills/`)
+
+| Skill | Purpose |
+|-------|---------|
+| `investigator` | Full end-to-end ticket investigation |
+| `classifier` | Ticket classification and routing |
+| `attachment-downloader` | Download Zendesk ticket attachments |
+| `pool` | Ticket pool management |
+
+### Hooks
+
+Session hooks run automatically to flag unsummarised transcripts and pending escalation summaries.
 
 ---
 
 ## API Access
 
-### Glean (Primary)
-- **READ-ONLY** access to customer tickets
-- View tickets 
-- Search ticket history
-
-### JIRA (For Escalations)
-- **READ-ONLY by default**
-- Create escalation tickets when needed
-- Reference existing engineering tickets
-
-### GitHub (For Research)
-- **READ-ONLY**
-- Search Datadog codebases during investigations
-
-### Confluence (Documentation)
-- **READ-ONLY**
-- Access internal documentation
-- Search troubleshooting guides
+| Service | Access | Auth |
+|---------|--------|------|
+| **Glean** | Read (Zendesk, Slack, internal docs) | SSO |
+| **Atlassian (JIRA)** | Read; Write for escalations | SSO |
+| **Atlassian (Confluence)** | Read | SSO |
+| **GitHub** | Read-only (code research) | PAT (optional) |
+| **Slack** | Via Glean search | SSO |
 
 ---
 
-## Product Areas
+## Customer Data Safety
 
-| Area | Description |
-|------|-------------|
-| **APM** | Application Performance Monitoring, traces, profiling |
-| **Infrastructure** | Hosts, containers, agent installation |
-| **Logs** | Log management, pipelines, parsing |
-| **RUM** | Real User Monitoring, Session Replay |
-| **Synthetics** | Synthetic monitoring, API tests, browser tests |
-| **Security** | AppSec, SIEM, CWS, CSPM, Vulnerability Management |
-| **Network** | Network Performance Monitoring, NetFlow |
-| **Platform** | Billing, API, authentication, integrations |
-
----
-
-## Scripts
-
-### zendesk_client.py
-```bash
-# Get a ticket
-python scripts/zendesk_client.py get 12345
-
-# List open tickets
-python scripts/zendesk_client.py list --status open
-
-# Search tickets
-python scripts/zendesk_client.py search "priority:urgent"
-
-# Archive ticket
-python scripts/zendesk_client.py archive 12345
-```
-
-### jira_client.py
-```bash
-# Search for related escalations
-python scripts/jira_client.py search "status = Open AND labels = security"
-
-# Get escalation details
-python scripts/jira_client.py get SCRS-1234
-```
-
----
-
-## Safety
-
-⚠️ **Customer Data Protection**
-- All case folders are gitignored
-- Never commit customer data, logs, or PII
-- Archive folders are gitignored
-- Credentials stay local
-
-📝 **Writing to Zendesk**
-- Cursor can update tickets and add comments
-- Always review before sending to customer
-- Use internal comments for investigation notes
+- All `cases/` and `archive/` folders are **gitignored** — customer data never leaves your machine
+- `.env` credentials are **gitignored**
+- Only templates, rules, scripts, and documentation are version-controlled
+- Never commit customer data, logs, screenshots, or PII
 
 ---
 
 ## Troubleshooting
 
-### MCP not loading
-1. Verify config: `cat .cursor/mcp.json`
-2. Check uvx: `~/.local/bin/uvx --version`
-3. Restart Cursor (Cmd+Q)
-
-### Zendesk API errors
-| Code | Issue | Fix |
-|------|-------|-----|
-| 401 | Bad token | Regenerate API token |
-| 403 | No permissions | Check token is API token (not OAuth) |
-| 429 | Rate limited | Wait 60 seconds |
+| Problem | Fix |
+|---------|-----|
+| JIRA/Confluence not working | Restart Cursor (Cmd+Q) — SSO will re-prompt |
+| GitHub not working | Regenerate PAT |
+| Zendesk 401/403 | Regenerate API token in Zendesk Admin |
+| Dashboard won't start | Check `python3 --version` (need 3.9+); check port 8501 |
+| Whisper fails | Install ffmpeg: `brew install ffmpeg` |
+| OpenAI summarisation fails | Check `OPENAI_API_KEY` in `.env` |
 
 ---
 
 ## Contributing
 
-1. Document solutions in `solutions/`
-2. Create troubleshooting docs from resolved cases
-3. Share communication templates
-4. Keep product docs updated
+1. Improve templates and rules
+2. Create anonymized troubleshooting docs from resolved cases
+3. Enhance the dashboard or scripts
+4. Keep documentation updated
+
+See [GIT_STRATEGY.md](GIT_STRATEGY.md) for what to commit and what to keep local.
 
 ---
 
-**Questions?** Ask in #support or open an issue on this repo.
+## Documentation
 
+- **[SETUP.md](SETUP.md)** — Full setup guide (prerequisites, environment, MCP)
+- **[QUICK_START.md](QUICK_START.md)** — Quick reference for daily use
+- **[STRUCTURE.md](STRUCTURE.md)** — Complete directory and file breakdown
+- **[GIT_STRATEGY.md](GIT_STRATEGY.md)** — What to commit / not commit
+- **[GITHUB_SETUP.md](GITHUB_SETUP.md)** — Repository management and push workflow
+- **[docs/escalation-criteria.md](docs/escalation-criteria.md)** — When to escalate to Engineering
+
+---
+
+**Questions?** Ask Cursor — it knows how the workspace works. Or reach out in #support-team.
