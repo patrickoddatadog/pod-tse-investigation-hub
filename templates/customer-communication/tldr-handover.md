@@ -1,19 +1,32 @@
 # TLDR Handover
 
-Use these when updating note.md and the Web App 'Ticket Dash' when creating a TLDR Handover.
+Use this template for the `## TLDR Handover` section in `notes.md`.
 
-This Handover will be read by Managers or TSE's who will be trying to quickly understand the context of the ticket so far. It should be consise and use language that is easily understood. 
+**This is NOT the same as the Leadership Summary.** The Leadership Summary is a separate `##` section — see `leadership-summary.md`.
 
-The **Leadership Summary**  
+## Audience
 
-The **TLDR Handover** must include
-- **Leadership Summary**    
-    Must include consise, high level languarge. This wording is for a non-technical audience. It must be simple, consise and easilty understood. It should *never* be more that 45 words
-- **Investigation**
-    The steps undertaken by the TSE so far. This section must be brief, but include technical details.
-- **Next Steps**
-    This should be technical steps for the next TSE to follow.
-- **Need from Customer**
-    If there ius anything needed from the Customer. 
-- **Important Links**
-    If there are any internal documnetation or relevant public docs. 
+**TSEs and managers** who need to quickly understand the ticket context. This audience is **technical** — you can and should include technical details.
+
+## Required Sub-sections (exactly 5)
+
+### Leadership Summary
+- **≤45 words.** Same non-technical summary as the `## Leadership Summary` section.
+- This is duplicated here so the TLDR Handover is self-contained.
+
+### Investigation
+- The steps undertaken by the TSE so far.
+- **Include technical details**: product names, config values, ticket IDs, JIRA references.
+- Bullet points are fine. Be brief but specific.
+
+### Next Steps
+- **Technical** steps for the next TSE to follow.
+- Include specific commands, config changes, or actions.
+
+### Need from Customer
+- What information or action is still needed from the customer.
+- Be specific (e.g. "output of `datadog-agent status`", "confirm API key is active").
+
+### Important Links
+- Internal documentation, relevant public docs, Zendesk tickets, JIRA tickets, monitor links.
+- All links must be hyperlinked.

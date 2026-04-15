@@ -1,0 +1,22 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": ".cursor/hooks/check-pending-transcripts.sh",
+        "timeout": 15
+      },
+      {
+        "command": ".cursor/hooks/check-pending-escalations.sh",
+        "timeout": 15
+      }
+    ],
+    "stop": [
+      {
+        "command": ".cursor/hooks/check-pending-transcripts.sh",
+        "timeout": 15,
+        "loop_limit": 5
+      }
+    ]
+  }
+}

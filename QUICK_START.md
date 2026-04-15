@@ -10,7 +10,7 @@ A Cursor AI workspace specifically designed for Technical Support Engineers (TSE
 - 📋 Investigate Zendesk tickets efficiently
 - 🤖 Use AI to search historical cases and documentation
 - 📝 Document investigations systematically
-- 🚀 Escalate to TEE with proper context
+- 🚀 Escalate to Engineering with proper context
 - 💬 Communicate clearly with customers
 
 ---
@@ -90,7 +90,7 @@ Pre-written templates for:
 Located in: `templates/customer-communication/`
 
 ### 🎯 Escalation Guidance
-Clear criteria for when to escalate to TEE:
+Clear criteria for when to escalate to Engineering:
 - Decision tree
 - Time guidelines
 - Checklist before escalating
@@ -221,7 +221,7 @@ Customer: "Logs not appearing in Datadog"
 - Use templates for customer communication (consistent, professional)
 - Search archive before starting investigation (someone may have solved this)
 - Ask Cursor for help searching (it's faster than manual)
-- Escalate when appropriate (don't waste days on TEE-level issues)
+- Escalate when appropriate (don't waste days on engineering-level issues)
 
 ### ❌ Don't
 - Commit customer data to git (it's all gitignored for safety)

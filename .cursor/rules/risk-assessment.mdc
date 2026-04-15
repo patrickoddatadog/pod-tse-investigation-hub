@@ -1,0 +1,50 @@
+---
+description: Risk assessment checklist and rollback guidance for recommending configuration changes to customers. Apply when drafting customer-facing recommendations that involve config, infrastructure, or production changes.
+alwaysApply: false
+---
+
+# Risk Assessment for Customer-Facing Changes
+
+Before recommending configuration changes to customers:
+
+## Critical Questions
+- Is this a production environment?
+- What happens if this breaks the application?
+- Can this change be easily reverted?
+- Is there a safer way to test this (staging environment)?
+- Have we seen this solution work for similar cases?
+
+## Red Flags
+- Reducing resource limits → may cause capacity/performance issues
+- Changing core application settings → may break functionality
+- Disabling security features → may create vulnerabilities
+- "Try restarting everything" → may cause downtime
+
+## Better Approaches
+- Test in staging/dev first if possible
+- Make one change at a time (easier to identify what worked/failed)
+- Provide rollback instructions upfront
+- Start with least invasive solutions
+- When uncertain about production impact → escalate
+
+**Remember:** The customer trusts your guidance. A bad recommendation can cause downtime, data loss, or security issues.
+
+## Risk Callouts (Always Include)
+
+When recommending configuration changes or actions to customers:
+- **Environment:** Explicitly state prod vs non-prod vs dev
+- **Risk level:** 🟢 LOW / 🟡 MEDIUM / 🔴 HIGH with justification
+- **What could go wrong:** Specific failure scenarios (not just "might break")
+- **Rollback plan:** How to undo the change step-by-step
+- **Testing approach:** Suggest safer validation methods when possible
+
+**Example:**
+> "I recommend adjusting the agent check interval to 30s.
+> 
+> **Environment:** This change should be tested in staging first
+> **Risk Level:** 🟡 MEDIUM - May temporarily increase metric gaps if agent restarts
+> **Rollback:** Revert datadog.yaml and restart agent
+> **What could go wrong:** Metrics may arrive less frequently, dashboards may show gaps
+> **Testing:** Try on 1-2 non-critical hosts first, monitor for 1 hour"
+
+**Real-World Lesson:** In past cases, seemingly logical configuration changes (like reducing check intervals to "reduce overhead" or adjusting worker counts) have caused unexpected issues. Always consider the full impact and test incrementally. When in doubt about production changes, escalate for a second opinion.

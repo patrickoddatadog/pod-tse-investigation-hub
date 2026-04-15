@@ -1,0 +1,36 @@
+---
+description: Mandatory deliverables for every investigation — draft customer response, zoom call prep, TLDR handover, and leadership summary. All must appear in notes.md and the POD Ticket Dashboard web app.
+alwaysApply: true
+---
+
+# Mandatory Investigation Outputs
+
+Every investigation **must** produce all of the following as **separate `##` sections** in `notes.md`. Each is auto-displayed in the corresponding POD Ticket Dashboard tab. Use `@cases/.template/notes.md` as the scaffold.
+
+## Checklist
+
+- [ ] **Draft Customer Response** (`## Draft Customer Response`) — Brief-First format (TL;DR → Action items → Explanation). Populate POD Ticket Dashboard "Overview" and "Investigation Notes" tabs. The TSE reviews and adapts before sending — never send without review.
+- [ ] **Zoom Call Preparation** (`## Zoom Call Preparation`) — Use ONLY @templates/customer-communication/zoom-call.md. Populate POD Ticket Dashboard "Zoom Call" tab.
+- [ ] **Leadership Summary** (`## Leadership Summary`) — Use ONLY @templates/customer-communication/leadership-summary.md. Populate POD Ticket Dashboard "Leadership Summary" tab. **NON-TECHNICAL audience (managers).** Strict word limits: Leadership Summary ≤45 words, Investigation ≤50 words, Next Steps ≤50 words. No jargon, no config values, no ticket IDs.
+- [ ] **TLDR Handover** (`## TLDR Handover`) — Use ONLY @templates/customer-communication/tldr-handover.md. This is a **separate section** from Leadership Summary. It targets TSEs and managers and **CAN include technical detail**. Has additional sub-sections (Need from Customer, Important Links).
+
+## Leadership Summary vs TLDR Handover — They Are DIFFERENT
+
+These are **two separate `##` sections** in `notes.md` with different audiences:
+
+| | `## Leadership Summary` | `## TLDR Handover` |
+|---|---|---|
+| **Audience** | Non-technical managers triaging | TSEs + managers needing context |
+| **Language** | Plain English, no jargon | Technical details welcome |
+| **Word limits** | Strict (45/50/50) | No strict limit |
+| **Sub-sections** | Leadership Summary, Investigation, Next Steps | Leadership Summary, Investigation, Next Steps, Need from Customer, Important Links |
+
+**Never merge these into one section.** Both must exist independently.
+
+## Rules
+
+- The draft customer response should be ready-to-review, not a rough outline
+- Include risk callouts if recommending configuration changes (see `@risk-assessment` rule)
+- If more information is needed from the customer, draft a requesting-info message instead of a solution
+- Do **NOT** create multiple file variations (`CUSTOMER_MESSAGE.md`, `MESSAGE_SHORT.md`, `SUMMARY.md`, etc.) unless explicitly requested — keep it in `notes.md` and use templates
+- **Read the referenced template file before writing each section** — do not write from memory

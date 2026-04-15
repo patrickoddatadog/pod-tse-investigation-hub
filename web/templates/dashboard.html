@@ -1,13 +1,13 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard — Ticket Dash{% endblock %}
+{% block title %}Dashboard — POD Ticket Dashboard{% endblock %}
 {% block page_title %}Dashboard{% endblock %}
 
 {% block topbar_actions %}{% endblock %}
 
 {% block content %}
 <div class="dashboard-header">
-  <h1 class="dashboard-hero">Ticket Dash</h1>
+  <h1 class="dashboard-hero">POD Ticket Dashboard</h1>
   <form class="search-form" method="get" action="{{ url_for('dashboard') }}">
     <div class="search-input-wrapper">
       <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
@@ -24,7 +24,7 @@
         <th>Case</th>
         <th>Customer</th>
         <th>Requester</th>
-        <th>Product Area</th>
+        <th></th>
       </tr>
     </thead>
     <tbody>
@@ -33,7 +33,9 @@
         <td class="case-id">{{ c.id }}</td>
         <td>{{ c.customer }}</td>
         <td>{{ c.requester }}</td>
-        <td><span class="chip chip-area">{{ c.product_area }}</span></td>
+        <td class="case-actions" onclick="event.stopPropagation()">
+          <button class="btn btn-sm btn-danger" onclick="removeCase('{{ c.id }}')">Remove Case</button>
+        </td>
       </tr>
       {% endfor %}
     </tbody>
@@ -46,4 +48,32 @@
   <p>{% if current_query or current_status or current_priority %}No cases match your filters. Try broadening your search.{% else %}No active cases in the <code>cases/</code> directory.{% endif %}</p>
 </div>
 {% endif %}
+{% endblock %}
+
+{% block scripts %}
+<script>
+function removeCase(caseId) {
+  if (!confirm('Are you sure you want to remove ' + caseId + '? This will permanently delete the case folder and all its contents.')) {
+    return;
+  }
+  fetch('/case/' + caseId + '/remove', { method: 'POST' })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(result) {
+      if (result.ok) {
+        var rows = document.querySelectorAll('tr.case-row');
+        for (var i = 0; i < rows.length; i++) {
+          if (rows[i].querySelector('.case-id').textContent.trim() === caseId) {
+            rows[i].remove();
+            break;
+          }
+        }
+      } else {
+        alert('Failed to remove case: ' + (result.data.error || 'Unknown error'));
+      }
+    })
+    .catch(function() {
+      alert('Network error — please try again.');
+    });
+}
+</script>
 {% endblock %}

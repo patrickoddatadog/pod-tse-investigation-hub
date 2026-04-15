@@ -1,0 +1,27 @@
+---
+description: Safety-critical API access constraints for Zendesk, JIRA, GitHub, and Slack — defines what actions are permitted and what requires confirmation.
+alwaysApply: true
+---
+
+# API Access Constraints
+
+### Zendesk
+- **READ/WRITE by default** — TSEs actively work tickets
+- Can view, update, and comment on tickets
+- **Always confirm before adding PUBLIC comments** (customer-facing)
+- Internal comments are safe for investigation notes
+
+### Atlassian (JIRA & Confluence)
+- **READ-ONLY by default** for searching
+- **WRITE when creating escalations** — confirm before creating JIRA tickets
+- Use JIRA to reference existing engineering tickets
+- Use Confluence for internal documentation
+
+### GitHub
+- **READ-ONLY** — Never create branches, commits, PRs, issues
+- Use for searching Datadog codebases during investigations
+
+### Slack
+- When asked to check a Slack thread or given a Slack URL (dd.slack.com), **always use Glean search** to find the content
+- Never attempt direct browser access to Slack URLs — they require authentication and won't work
+- Slack messages are indexed in Glean and accessible through search

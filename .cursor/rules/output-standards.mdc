@@ -1,0 +1,45 @@
+---
+description: Standards for investigation file structure, cleanup practices, and customer data protection — applies when creating or managing case folders.
+alwaysApply: false
+---
+
+# Investigation Output Standards
+
+## Standardized File Structure
+
+For each case investigation, create ONLY these files:
+- **`README.md`** — Case metadata and quick reference
+- **`notes.md`** — Your detailed investigation (exhaustive, for your reference and future TSEs)
+- **`assets/`** — Folder for logs, screenshots, flares, configs
+
+Use @cases/.template/ as the starting point for new cases.
+
+## README.md Field Names
+
+The POD Ticket Dashboard parses README.md tables by field name. Always use these exact names in the Quick Info table:
+
+- **`Customer`** — Company name (NOT `Org`, `Organization`, or `Company`)
+- **`Product Area`** — Product category
+- **`Priority`** — Low / Medium / High / Critical
+- **`Status`** — New / Investigating / Escalated / Resolved
+- **`Assigned TSE`** — TSE name
+
+Using non-standard field names (e.g. `Org` instead of `Customer`) causes "Unknown" to appear on the dashboard.
+
+## Cleanup Practices
+- **Test artifacts:** After resolving a case, clean up any test scripts or temporary files you created
+- **Don't leave clutter:** If you created test configurations or reproduction scripts, remove them when done
+- **Archive when resolved:** Use `python3 scripts/zendesk_client.py archive [ID]` to move resolved cases to archive
+
+## Customer Data Protection
+- Never commit customer logs, configs, or PII to git
+- All `cases/` folders are gitignored
+- Use anonymized data in documentation
+- Clear sensitive data from screenshots
+
+## Solution Documentation
+When you solve something novel:
+- Document it in `solutions/`
+- Create troubleshooting guide in relevant `docs/` area
+- Share in team channels
+- Help future TSEs (and yourself) solve it faster next time

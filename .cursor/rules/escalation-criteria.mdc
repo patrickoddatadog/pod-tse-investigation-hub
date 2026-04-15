@@ -1,0 +1,31 @@
+---
+description: When and how to escalate cases to Engineering — decision criteria, escalation summary generation, and JIRA process. Apply when investigating cases, deciding whether to escalate, or generating escalation summaries.
+alwaysApply: false
+---
+
+# Escalation Criteria
+
+For the full decision tree, time guidelines, pre-escalation checklist, and common mistakes, see @docs/escalation-criteria.md.
+
+## Escalation Summary Pipeline
+
+The POD Ticket Dashboard has an **Escalation** tab that generates a JIRA-ready escalation summary from the case's `README.md` and `notes.md` using OpenAI.
+
+### How it works
+1. TSE clicks **Generate Escalation Summary** on the Escalation tab
+2. `app.py` reads `README.md` + `notes.md` and sends them to OpenAI
+3. OpenAI produces a structured summary following @templates/escalation/escalation-template.md
+4. The summary is written to the `## Escalation Summary` section of `notes.md`
+5. The dashboard displays the rendered summary with a **Copy** button for pasting into JIRA
+
+### When to generate
+- After completing the pre-escalation checklist in @docs/escalation-criteria.md
+- When investigation notes have enough context (environment, symptoms, what's been tried)
+- Before creating a JIRA SCRS ticket — use the generated summary as the ticket body
+
+### Rules
+- The `## Escalation Summary` section is separate from `## Escalation Notes` (manual tracking)
+- Regenerate the summary if investigation notes are updated with new findings
+- Always review the generated summary before pasting into JIRA — add any missing context
+- `OPENAI_API_KEY` must be set in `.env` for generation to work
+

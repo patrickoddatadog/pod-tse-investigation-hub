@@ -1,6 +1,6 @@
 # Zoom Call Agenda
 
-Use these when updating note.md and the Web App 'Ticket Dash' when creating an Agenda for a call.
+Use these when updating note.md and the Web App 'POD Ticket Dashboard' when creating an Agenda for a call.
 
 This Agneda will be read by the TSE who is preparing for a call with a customer. It should be consise as the TSE will be referncing this to prepare and also during the call. 
 

@@ -83,7 +83,7 @@ tse-investigation-hub/
 > "Investigate Zendesk ticket 12345"
 
 Cursor will:
-1. Fetch the ticket from Zendesk
+1. Fetch the ticket from Glean
 2. Assess what info you have
 3. Search for similar historical cases
 4. Create case notes in `cases/ZD-12345/`
@@ -107,7 +107,7 @@ Use templates from `templates/customer-communication/`:
 - Providing solution
 - Escalation notice
 
-### When to Escalate to TEE
+### When to Escalate to Engineering
 Check `docs/escalation-criteria.md` for guidance on:
 - When to escalate vs. continue troubleshooting
 - What info to include in escalation
@@ -122,9 +122,9 @@ python scripts/zendesk_client.py archive 12345
 
 ## API Access
 
-### Zendesk (Primary)
-- **READ/WRITE** access to customer tickets
-- View, update, comment on cases
+### Glean (Primary)
+- **READ-ONLY** access to customer tickets
+- View tickets 
 - Search ticket history
 
 ### JIRA (For Escalations)

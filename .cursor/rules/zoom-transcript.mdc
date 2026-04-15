@@ -1,0 +1,42 @@
+---
+description: Zoom call transcript processing pipeline — Whisper extracts, OpenAI summarises automatically.
+alwaysApply: true
+---
+
+# Zoom Call Transcript Pipeline
+
+This rule is always active. When a raw transcript is detected, you **must** summarise it immediately — do not ask the user for permission.
+
+## Pipeline Overview
+
+1. **Whisper extraction (web app):** User uploads audio via POD Ticket Dashboard → web app runs Whisper → saves `.transcript.txt` to `cases/<case-id>/assets/recordings/` → writes the raw transcript into the `## Zoom Call Transcript` section of `notes.md`.
+2. **Summarisation (OpenAI):** User clicks the **Summarise** button on the Zoom Call Transcript tab → web app calls OpenAI (`_summarise_transcript` in `app.py`) → replaces the `### Raw Transcript` block with a structured summary in `notes.md`. Requires the `openai` package and `OPENAI_API_KEY` in `.env`.
+3. **Display:** POD Ticket Dashboard "Zoom Call Transcript" tab auto-displays the updated `## Zoom Call Transcript` section from `notes.md`.
+
+## How to Detect a Pending Transcript
+
+A transcript needs summarisation when **all** of these are true:
+- `notes.md` has a `## Zoom Call Transcript` section
+- That section contains `### Raw Transcript`
+- That section does **NOT** contain `### Summary of Issue`
+
+## Summary Format
+
+Replace the `### Raw Transcript` block with these three sections:
+
+### Summary of Issue
+What the customer described — the core problem in 2-3 sentences.
+
+### Findings on Call
+Key technical details, configurations discussed, errors mentioned, diagnostic steps taken, environment info.
+
+### Workaround
+Any workaround discussed or agreed upon. Write "None identified" if none was discussed.
+
+## Rules
+
+- OpenAI is the summarisation engine — `OPENAI_API_KEY` must be set in `.env`
+- Summarise for a **technical/engineering audience** — concise, factual, investigation-focused
+- Preserve exact error messages, metric names, config values, and version numbers from the transcript
+- The raw `.transcript.txt` stays in `assets/recordings/` for reference
+- This pipeline is standalone — execute ONLY this when triggered, do not re-run the full investigation

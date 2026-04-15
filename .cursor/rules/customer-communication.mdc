@@ -1,0 +1,40 @@
+---
+description: Guidelines for drafting customer-facing communication — brief-first approach, tone, formatting, and template usage. Apply when writing or reviewing messages to customers.
+alwaysApply: false
+---
+
+# Customer Communication Guidelines
+
+## Brief-First Approach
+
+When communicating with customers:
+1. **Start with TL;DR** (2-3 sentences maximum) — What's happening and next steps
+2. **Action items first** — What they need to do (or what you're doing)
+3. **Explanation second** — Why this is happening (keep it simple)
+4. **Technical details last** — Only if necessary, in internal notes
+
+## Customer-facing communication should be:
+- **Clear**: No jargon, explain technical terms
+- **Actionable**: Specific steps, not vague suggestions
+- **Empathetic**: Acknowledge their frustration/impact
+- **Professional**: Friendly but not overly casual
+- **Concise**: Don't make it too long
+- **Human**: Avoid overly formal or AI-like language
+- **Direct**: Get to the point quickly
+
+## Formatting tips
+- Use **bold** for emphasis on key points
+- Use bullet points for steps or lists
+- Don't use headers to make text larger in customer messages
+- Break up long paragraphs
+
+## Templates
+
+Use templates from @templates/customer-communication/ for:
+- Initial acknowledgment → @templates/customer-communication/acknowledgment.md
+- Requesting additional information → @templates/customer-communication/requesting-info.md
+- Providing solutions/workarounds → @templates/customer-communication/solution.md
+- Escalation notifications → @templates/customer-communication/escalation-notice.md
+- Zoom call preparation → @templates/customer-communication/zoom-call.md
+- Leadership summaries → @templates/customer-communication/leadership-summary.md
+- TLDR handovers → @templates/customer-communication/tldr-handover.md

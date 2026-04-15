@@ -1,382 +1,313 @@
-# 🚀 TSE Investigation Hub - Setup Guide
+# TSE Investigation Hub - Getting Started
 
-Get up and running in ~15 minutes.
+## What Is This?
+
+A structured workspace for Technical Support Engineers (TSEs) to investigate customer cases using [Cursor AI](https://cursor.com) with direct access to Zendesk, JIRA, Confluence, GitHub, and internal Datadog knowledge via MCP (Model Context Protocol).
+
+**Key advantage:** Instead of manually switching between Zendesk, JIRA, Confluence, GitHub, and Slack to piece together context, Cursor AI fetches and analyzes everything for you in one place.
 
 ---
 
 ## Prerequisites
 
-Before starting, ensure you have:
+Before you begin, make sure you have the following installed:
 
-- [ ] **Cursor IDE** installed ([cursor.com](https://cursor.com))
-- [ ] **Git** installed
-- [ ] **Python 3.8+** installed
-- [ ] Access to **Zendesk** (API token access)
-- [ ] Access to **Datadog's Atlassian** (JIRA/Confluence)
-- [ ] Access to **Datadog's GitHub org** (optional, for code research)
+| Requirement | Minimum Version | Check Command |
+|---|---|---|
+| **Python** | 3.9+ | `python3 --version` |
+| **Git** | Any recent | `git --version` |
+| **Cursor** | Latest | [Download Cursor](https://cursor.com) |
+
+### Optional (for advanced features)
+
+| Requirement | Purpose | Install |
+|---|---|---|
+| **uv** | MCP server runtime | `curl -LsSf https://astral.sh/uv/install.sh \| sh` |
+| **ffmpeg** | Zoom call audio transcription (Whisper) | `brew install ffmpeg` |
+| **OpenAI API key** | Transcript summarisation & escalation generation | [Get API key](https://platform.openai.com/api-keys) |
 
 ---
 
-## Step 1: Set Up the Workspace
+## Setup (5 minutes)
+
+### 1. Clone and open in Cursor
 
 ```bash
-# Option A: Clone if this is a shared repo
-git clone git@github.com:YOUR_ORG/tse-investigation-hub.git
+git clone https://github.com/patrickoddatadog/tse-investigation-hub.git
 cd tse-investigation-hub
-
-# Option B: Use the existing folder if already created
-cd ~/tse-investigation-hub
-git init  # If you want to track it with git
 ```
 
----
-
-## Step 2: Install `uv` (MCP Server Runner)
-
-MCP servers run via `uvx`. Install it:
+Open the folder in [Cursor](https://cursor.com):
 
 ```bash
-# macOS / Linux
-curl -LsSf https://astral.sh/uv/install.sh | sh
-
-# Verify installation
-~/.local/bin/uvx --version
+cursor .
 ```
 
-If the command isn't found after installation, add to your shell profile:
+Or use **File > Open Folder** and select the `tse-investigation-hub` directory.
+
+### 2. Tell Cursor: "Set me up"
+
+That's it. The Cursor rules and MCP configuration handle the rest. On first use, the workspace configures:
+
+- **Atlassian (JIRA + Confluence)** -- uses SSO, no token needed
+- **Glean (Slack, internal docs)** -- uses SSO, no token needed
+- **GitHub (optional)** -- needs a [PAT](https://github.com/settings/tokens?type=beta) with `Contents` + `Metadata` read permissions; authorize SSO for the DataDog org
+
+### 3. Set up environment variables
 
 ```bash
-echo 'export PATH="$HOME/.local/bin:$PATH"' >> ~/.zshrc
-source ~/.zshrc
-```
-
----
-
-## Step 3: Get Your API Tokens
-
-### Zendesk API Token
-
-1. Log into Zendesk as an Admin
-2. Go to: **Admin Center → Apps and integrations → APIs → Zendesk API → Settings**
-3. Under "Token Access", click **"Add API Token"**
-4. Name it: `TSE Investigation Hub`
-5. Copy the token (you won't see it again!)
-6. Note your subdomain (e.g., `yourcompany` from `yourcompany.zendesk.com`)
-
-### Atlassian Token (JIRA & Confluence)
-
-1. Go to: https://id.atlassian.com/manage-profile/security/api-tokens
-2. Click **"Create API token"**
-3. Name it: `TSE Hub`
-4. Copy the token
-
-### GitHub Token (Optional)
-
-1. Go to: https://github.com/settings/tokens?type=beta
-2. Click **"Generate new token"**
-3. Name it: `TSE Hub`
-4. Set expiration (90 days recommended)
-5. Under **"Repository access"**, select: `All repositories` (or specific Datadog repos)
-6. Under **"Permissions"**, enable:
-   - `Contents` → Read-only
-   - `Metadata` → Read-only
-7. Click **"Generate token"**
-8. **Important:** For Datadog private repos, click **"Configure SSO"** and authorize for DataDog org
-
----
-
-## Step 4: Configure Environment Variables
-
-```bash
-# Copy the template
 cp .env.example .env
-
-# Edit with your values
-nano .env  # or use your preferred editor
 ```
 
-Fill in your credentials:
+Edit `.env` with your credentials:
 
-```bash
-# Zendesk
+```ini
+# Zendesk Configuration
 ZENDESK_SUBDOMAIN=yourcompany
 ZENDESK_EMAIL=your.email@company.com
 ZENDESK_API_TOKEN=paste_your_zendesk_token_here
 
-# Atlassian (for escalations and documentation)
+# Atlassian Configuration (JIRA & Confluence)
 ATLASSIAN_DOMAIN=yourcompany.atlassian.net
 ATLASSIAN_EMAIL=your.email@company.com
 ATLASSIAN_API_TOKEN=paste_your_atlassian_token_here
 
-# JIRA Project
+# JIRA Project Configuration
 JIRA_PROJECT_KEY=SCRS
 
-# GitHub (optional, for code research)
+# GitHub Configuration (optional — for code research)
 GITHUB_TOKEN=paste_your_github_token_here
+
+# OpenAI Configuration (optional — for transcript summarisation)
+OPENAI_API_KEY=paste_your_openai_api_key_here
 ```
 
-Save and close.
-
----
-
-## Step 5: Configure MCP (Cursor AI Integration)
-
-This connects Cursor to Zendesk, JIRA, Confluence, and GitHub.
+### 4. Install Python dependencies
 
 ```bash
-# Copy the template
-cp .cursor/mcp.json.example .cursor/mcp.json
-
-# Edit with your values
-nano .cursor/mcp.json
+pip install -r requirements.txt
 ```
 
-Replace the placeholders:
+This installs: Flask, python-dotenv, markdown, pygments, openai-whisper, and openai.
 
-```json
-{
-  "mcpServers": {
-    "zendesk": {
-      "command": "python3",
-      "args": [
-        "scripts/zendesk_mcp_server.py",
-        "--subdomain", "YOUR_ZENDESK_SUBDOMAIN",     ← Replace
-        "--email", "your.email@company.com",         ← Replace
-        "--token", "YOUR_ZENDESK_API_TOKEN"          ← Replace
-      ]
-    },
-    "atlassian": {
-      "command": "uvx",
-      "args": [
-        "mcp-atlassian",
-        "--jira-url", "https://yourcompany.atlassian.net",
-        "--jira-username", "your.email@company.com",
-        "--jira-token", "YOUR_ATLASSIAN_API_TOKEN",
-        "--confluence-url", "https://yourcompany.atlassian.net/wiki",
-        "--confluence-username", "your.email@company.com",
-        "--confluence-token", "YOUR_ATLASSIAN_API_TOKEN",
-        "--read-only"
-      ]
-    },
-    "github": {
-      "command": "uvx",
-      "args": ["mcp-github"],
-      "env": {
-        "GITHUB_TOKEN": "YOUR_GITHUB_PAT"
-      }
-    }
-  }
-}
-```
+### 5. Restart Cursor
 
-Save and close.
+Quit completely (**Cmd+Q**), then reopen the workspace. Atlassian and Glean will prompt a one-time SSO login on first use.
 
----
+### 6. Test it
 
-## Step 6: Restart Cursor
-
-**Important:** MCP only loads when Cursor starts.
-
-1. Quit Cursor completely: **Cmd+Q** (not just close window)
-2. Reopen Cursor
-3. Open the `tse-investigation-hub` folder
-
----
-
-## Step 7: Verify Everything Works
-
-### Test Zendesk
 Ask Cursor:
-> "Use MCP to fetch Zendesk ticket 12345"
 
-**Expected:** Cursor shows ticket details
-
-**If it fails:**
-- Check `scripts/zendesk_mcp_server.py` exists and is executable
-- Verify credentials in `.cursor/mcp.json`
-- Check Cursor's MCP panel for error messages
-
-### Test JIRA
-Ask Cursor:
 > "Search JIRA for open SCRS tickets"
 
-**Expected:** Cursor returns list of tickets
+If you get results, you're all set.
 
-### Test Confluence
-Ask Cursor:
-> "Search Confluence for APM troubleshooting"
+---
 
-**Expected:** Cursor returns matching pages
+## What You Can Do
 
-### Test Python Scripts (Fallback)
-```bash
-# Test Zendesk script
-python3 scripts/zendesk_client.py list --status open
+| Goal | What to say in Cursor |
+|---|---|
+| Investigate a ticket | `"Investigate Zendesk ticket ZD-2488538"` |
+| Search escalations | `"Search JIRA for APM memory leak issues"` |
+| Find internal docs | `"Search Confluence for agent troubleshooting"` |
+| Search code | `"Search dd-trace-py for this error message"` |
+| Search everything | `"Search Glean for recent security product updates"` |
+| Draft a response | `"Draft a customer response for this case"` |
+| Prepare for a Zoom call | `"Prepare a Zoom call agenda for ZD-12345"` |
+| Create an escalation | `"Create JIRA escalation for ZD-12345"` |
 
-# Test JIRA script  
-python3 scripts/jira_client.py list-open
+---
+
+## Workspace Structure
+
+```
+tse-investigation-hub/
+├── .cursor/
+│   ├── rules/               # AI behavior rules (investigation, comms, escalation)
+│   ├── hooks/                # Auto-checks for pending transcripts & escalations
+│   └── hooks.json            # Hook configuration
+├── app.py                    # POD Ticket Dashboard (Flask web app)
+├── cases/                    # Active customer cases (gitignored)
+│   ├── .template/            # Template for new case folders
+│   └── ZD-XXXXXX/            # One folder per Zendesk ticket
+│       ├── README.md          # Case metadata
+│       ├── notes.md           # Investigation notes (all tabs rendered from this)
+│       └── assets/            # Logs, screenshots, recordings
+├── archive/                  # Resolved cases by month (gitignored)
+├── docs/                     # Escalation criteria, product docs
+├── templates/                # Customer communication & escalation templates
+│   ├── customer-communication/
+│   └── escalation/
+├── solutions/                # Known issues & workarounds
+├── scripts/                  # CLI tools & utilities
+│   ├── jira_client.py         # JIRA search & escalation creation
+│   ├── transcribe.py          # Whisper transcription for Zoom recordings
+│   └── start-server.sh        # Auto-restart wrapper for the web dashboard
+├── reference/                # JIRA project codes, reference materials
+├── web/                      # Web dashboard templates & static assets
+│   ├── templates/             # Jinja2 HTML templates
+│   └── static/                # CSS
+├── requirements.txt
+├── .env.example              # Template for environment variables
+└── .gitignore                # Protects customer data from being committed
 ```
 
 ---
 
-## 🎉 You're Ready!
+## POD Ticket Dashboard (Local Web UI)
 
-Try your first investigation:
+The workspace includes a browser-based dashboard for visualizing investigations without using the terminal. It's entirely optional — the workspace works fully through Cursor alone.
+
+### Start the dashboard
+
+```bash
+# Option 1: Direct
+python3 app.py
+
+# Option 2: Auto-restart wrapper
+./scripts/start-server.sh
+```
+
+Then open: **http://localhost:8501**
+
+### Dashboard features
+
+- **Case list** with status, priority, customer, and product area filters
+- **Case detail** with tabbed views:
+  - **Overview** -- issue summary and proposed customer response
+  - **Investigation Notes** -- full notes rendered from `notes.md`
+  - **Zoom Call** -- call preparation agenda
+  - **Zoom Call Transcript** -- upload audio, auto-transcribe with Whisper, summarise with OpenAI
+  - **Leadership Summary** -- non-technical summary for managers
+  - **TLDR Handover** -- technical handover for other TSEs
+  - **Escalation** -- generate JIRA-ready escalation summaries with one click
+- **Known Issues** -- centralized list of tracked bugs and workarounds
+- **Archive** -- searchable resolved cases by month
+- **Docs** -- escalation criteria and product documentation
+- **Comms Templates** -- customer communication templates
+
+---
+
+## Investigation Workflow
+
+### Starting a case
+
+**Option 1: Ask Cursor** (recommended)
 
 > "Investigate Zendesk ticket 12345"
 
 Cursor will:
-1. Fetch the ticket
-2. Assess what information you have
-3. Search for similar cases
-4. Create investigation folder and notes
+1. Fetch the ticket via Glean
+2. Search for similar historical cases
+3. Check known issues
+4. Create a case folder in `cases/ZD-12345/`
+5. Generate investigation notes with all mandatory sections
+
+**Option 2: Manual**
+
+```bash
+cp -r cases/.template cases/ZD-12345
+```
+
+### During investigation
+
+- Ask Cursor to search Confluence, JIRA, GitHub, or Glean for context
+- Drop logs, screenshots, and recordings into `cases/ZD-12345/assets/`
+- Document findings in `notes.md` -- the dashboard renders each `##` section as a separate tab
+- Use templates from `templates/customer-communication/` for responses
+
+### Zoom call recording workflow
+
+1. Upload an audio/video file via the dashboard's Zoom Call Transcript tab
+2. Whisper automatically transcribes the recording
+3. Click **Summarise** to generate a structured summary via OpenAI
+4. The summary appears in `notes.md` and the dashboard
+
+### Escalation workflow
+
+1. Complete your investigation and document findings in `notes.md`
+2. Mark escalation in the Escalation Notes section: `[x] Yes`
+3. Open the Escalation tab in the dashboard and click **Generate Escalation Summary**
+4. Review the generated JIRA-ready summary
+5. Create the JIRA ticket: ask Cursor `"Create JIRA escalation for ZD-12345"`
+
+### Archiving a resolved case
+
+```bash
+python3 scripts/zendesk_client.py archive 12345
+```
+
+---
+
+## Cursor Rules & Hooks
+
+The workspace ships with pre-configured AI rules that shape Cursor's behavior:
+
+| Rule | Purpose |
+|---|---|
+| `investigation-workflow` | Step-by-step process for investigating tickets |
+| `mandatory-outputs` | Ensures all required sections exist in `notes.md` |
+| `customer-communication` | Brief-first tone, template usage |
+| `escalation-criteria` | When and how to escalate |
+| `risk-assessment` | Rollback/risk checklist for config change recommendations |
+| `zoom-transcript` | Auto-summarisation pipeline for call recordings |
+| `api-access-constraints` | Read/write boundaries for each external service |
+| `tse-context` | Role context and workspace layout |
+| `output-standards` | File structure and customer data protection |
+
+### Hooks
+
+Session hooks run automatically to catch pending work:
+
+- **On session start:** Checks for unsummarised transcripts and pending escalation summaries
+- **On stop:** Ensures the agent doesn't end a session with pending transcript summarisation
+
+---
+
+## API Access Summary
+
+| Service | Default Access | Notes |
+|---|---|---|
+| **Glean** | Read | Searches Zendesk, Slack, internal docs |
+| **Atlassian (JIRA)** | Read; Write for escalations | Confirm before creating JIRA tickets |
+| **Atlassian (Confluence)** | Read | Internal documentation |
+| **GitHub** | Read-only | Code research only -- never creates branches, PRs, or issues |
+| **Slack** | Via Glean search | Never access Slack URLs directly; use Glean instead |
 
 ---
 
 ## Troubleshooting
 
-### MCP Not Loading
+| Problem | Fix |
+|---|---|
+| "I don't have access to JIRA" | Restart Cursor (Cmd+Q), SSO will re-prompt |
+| GitHub not working | Token expired -- tell Cursor `"reconfigure my workspace"` |
+| Cursor slow on first open | Wait for indexing to finish |
+| MCP not loading | Verify `.cursor/mcp.json` exists; check `uvx --version`; restart Cursor |
+| Zendesk 401 errors | Regenerate your API token in Zendesk Admin |
+| Zendesk 403 errors | Ensure you're using an API token, not OAuth |
+| Zendesk 429 errors | Rate limited -- wait 60 seconds |
+| Dashboard won't start | Check `python3 --version` (need 3.9+); check port 8501 isn't in use |
+| Whisper transcription fails | Ensure `ffmpeg` is installed: `brew install ffmpeg` |
+| OpenAI summarisation fails | Verify `OPENAI_API_KEY` is set in `.env` |
 
-**Symptom:** Cursor doesn't recognize Zendesk/JIRA commands
-
-**Fix:**
-1. Check config exists: `cat .cursor/mcp.json`
-2. Verify JSON is valid (no trailing commas, quotes correct)
-3. Check Python 3 is available: `python3 --version`
-4. Check uvx works: `~/.local/bin/uvx --version`
-5. Fully restart Cursor (Cmd+Q, not just close)
-6. Check Cursor's MCP panel (bottom right) for errors
-
-### "uvx not found"
-
-**Fix:**
-```bash
-curl -LsSf https://astral.sh/uv/install.sh | sh
-source ~/.zshrc  # or restart terminal
-```
-
-### Zendesk 401 Unauthorized
-
-**Symptom:** `HTTP Error 401`
-
-**Fix:**
-1. Verify you're using an API token (not password)
-2. Check token format includes `/token` in username: `email/token:token`
-3. Regenerate Zendesk API token
-4. Update `.cursor/mcp.json` and `.env`
-5. Restart Cursor
-
-### Zendesk 403 Forbidden
-
-**Symptom:** `HTTP Error 403`
-
-**Fix:**
-1. Verify your Zendesk account has API access enabled
-2. Check you're an agent (not end-user)
-3. Verify token permissions in Zendesk admin
-
-### JIRA 401 or 403
-
-**Symptom:** JIRA searches fail
-
-**Fix:**
-1. Regenerate Atlassian API token
-2. Verify you have access to SCRS project
-3. Update `.cursor/mcp.json` and `.env`
-4. Restart Cursor
-
-### GitHub 401 or 403
-
-**Symptom:** GitHub searches fail
-
-**Fix:**
-1. Check token hasn't expired
-2. For Datadog repos: Authorize SSO at https://github.com/settings/tokens
-3. Verify token has `Contents: Read` permission
-4. Update `.cursor/mcp.json`
-5. Restart Cursor
-
-### Python Scripts Not Working
-
-**Symptom:** `ModuleNotFoundError` or import errors
-
-**Fix:**
-```bash
-# Check Python version
-python3 --version  # Should be 3.8+
-
-# Scripts use standard library only (no pip install needed)
-# Check .env file exists and has correct values
-cat .env
-```
-
-### MCP Tools Return Errors
-
-**Symptom:** Cursor can call tools but they return errors
-
-**Fix:**
-1. Check credentials in `.env` match `.cursor/mcp.json`
-2. Test scripts directly to isolate issue:
-   ```bash
-   python3 scripts/zendesk_client.py list --status open
-   ```
-3. Check API rate limits (Zendesk: 700 req/min per account)
-4. Verify network access (firewall, VPN, etc.)
+For anything else: tell Cursor `"Help me troubleshoot my MCP setup"`
 
 ---
 
-## Next Steps
+## Customer Data Safety
 
-### Customize Your Workspace
-
-1. **Update `solutions/known-issues.md`** with current product bugs
-2. **Add product documentation** to relevant `docs/` folders
-3. **Customize templates** in `templates/` for your team's style
-4. **Create your first case** to test the workflow
-
-### Learn the Workflow
-
-1. Read `.cursorrules` to understand how Cursor will assist you
-2. Review `docs/escalation-criteria.md` for escalation guidelines
-3. Check out the templates in `templates/`
-4. Browse `cases/.template/` to see the case structure
-
-### Start Investigating
-
-Pick a ticket and ask Cursor:
-> "Investigate Zendesk ticket XXXXX"
+- All `cases/` folders are **gitignored** -- customer data never leaves your machine
+- All `archive/` folders are **gitignored**
+- `.env` credentials are **gitignored**
+- Never commit customer data, logs, screenshots, or PII
+- The workspace is designed so only templates, rules, scripts, and documentation are version-controlled
 
 ---
 
-## File Structure After Setup
+## Need Help?
 
-```
-tse-investigation-hub/
-├── .cursor/
-│   ├── mcp.json              ← Your config (gitignored)
-│   └── mcp.json.example      ← Template
-├── .env                      ← Your tokens (gitignored)
-├── .cursorrules              ← AI behavior rules
-├── cases/
-│   └── .template/            ← Template for new cases
-├── archive/                  ← Will fill with archived tickets
-├── docs/                     ← Product documentation
-├── templates/                ← Communication templates
-├── solutions/                ← Known issues tracking
-├── scripts/                  ← Python utilities
-├── README.md
-└── SETUP.md                  ← You are here
-```
-
----
-
-## Getting Help
-
-- **Slack:** #support-team (or your team channel)
-- **Issues:** Open a GitHub issue on this repo
-- **Cursor:** Just ask! The AI knows how this hub works
-
----
-
-**Happy investigating! 🔍**
-
+- **Ask Cursor** -- it knows how the workspace works and can self-diagnose issues
+- **Slack:** #support-team
+- **Repo:** [github.com/patrickoddatadog/tse-investigation-hub](https://github.com/patrickoddatadog/tse-investigation-hub)

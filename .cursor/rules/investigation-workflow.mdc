@@ -1,0 +1,74 @@
+---
+description: Core investigation workflow for Zendesk tickets — how to fetch tickets via Glean, assess information, search for known solutions, and troubleshoot systematically.
+alwaysApply: true
+---
+
+# Investigation Workflow
+
+When asked to investigate a Zendesk ticket:
+
+## Step 1: Fetch the Ticket
+
+Use the Glean MCP `search` tool with targeted arguments:
+
+**To fetch a specific ticket:**
+```json
+{ "query": "<ticket_number>", "app": "glean" }
+```
+- Use just the numeric ticket ID (e.g. `"2533275"`, not `"ZD-2533275"`)
+- Always set `app: "glean"` to scope results and avoid noise
+
+**To search for similar historical tickets:**
+```json
+{ "query": "<symptom keywords>", "app": "glean" }
+```
+- Use short, targeted keywords (e.g. `"Data Access filtering restriction roles not working"`)
+- Avoid full sentences, boolean logic (OR/AND), or duplicate terms
+
+**To search internal documentation:**
+```json
+{ "query": "<topic keywords>", "app": "confluence" }
+```
+
+**To search engineering tickets:**
+```json
+{ "query": "<issue keywords>", "app": "jira" }
+```
+
+**To find Slack discussions (including dd.slack.com URLs):**
+```json
+{ "query": "<topic or thread keywords>", "app": "slack" }
+```
+
+Run these searches in parallel where possible.
+
+## Step 2: Assess Available Information
+
+Check what the customer has provided:
+- **Environment**: Datadog Agent version, host OS, runtime versions, deployment method
+- **Symptoms**: Error messages, unexpected behavior, what changed
+- **Reproduction**: When it happens, how often, any patterns
+- **Impact**: How many hosts/services affected, business impact
+- **Attempts**: What they've already tried
+
+**Be practical** — not every case needs everything. Judge what's actually needed.
+
+## Step 3: Search for Known Solutions
+
+**Pattern Recognition First:**
+1. Search for similar historical cases (by symptoms/patterns, not just ticket numbers)
+2. Check if this matches a known pattern from previous investigations
+3. If pattern found, state: "This matches [pattern] from ZD-XXXXX" and adapt the solution
+4. Only do full greenfield investigation if no pattern matches
+
+**Resources to check:**
+- `archive/` for similar historical cases
+- Confluence for troubleshooting docs
+- JIRA for related tickets (both customer escalations and engineering bugs)
+
+## Step 4: Troubleshooting Strategy
+
+- Start with most likely causes (recent changes, common issues)
+- Request specific missing info (don't shotgun 20 questions)
+- Test hypotheses one at a time
+- Document what you try in `cases/ZD-XXXXX/notes.md`

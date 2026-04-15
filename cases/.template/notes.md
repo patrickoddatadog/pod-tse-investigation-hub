@@ -1,7 +1,5 @@
 # Investigation Notes: ZD-XXXXXX
 
-> **Purpose:** Document your investigation process, findings, and customer communications
-
 ---
 
 ## Initial Assessment
@@ -194,7 +192,6 @@ See `assets/screenshots/`:
 > Follow the Brief-First approach: TL;DR → Action items → Explanation → Technical details (if needed).
 > Use templates from `templates/customer-communication/` as a starting point.
 
-```
 Hi [Customer Name],
 
 [TL;DR — 2-3 sentences: what's happening and what the next step is]
@@ -208,7 +205,92 @@ Hi [Customer Name],
 Best regards,
 [Your Name]
 Datadog Technical Support
-```
+
+---
+
+## Zoom Call Preparation
+
+### Answers to Customer Questions
+- [Question 1]: [Answer]
+
+### Agenda
+1. [Agenda item 1]
+2. [Agenda item 2]
+
+### Resources
+- [Doc title](URL)
+
+### Key Points to Communicate
+- [Key point 1]
+
+---
+
+## Leadership Summary
+
+> Follow ONLY `templates/customer-communication/leadership-summary.md`.
+> This is a SEPARATE section from TLDR Handover. It is for a **non-technical** audience (managers triaging tickets).
+> **STRICT CONSTRAINTS:** Leadership Summary ≤45 words | Investigation ≤50 words | Next Steps ≤50 words. All non-technical.
+
+### Leadership Summary
+[≤45 words. Non-technical, high-level. No jargon, no ticket IDs, no config values.]
+
+### Investigation
+[≤50 words. Brief summary of what the TSE has done. Non-technical.]
+
+### Next Steps
+[≤50 words. Non-technical. What happens next in plain language.]
+
+---
+
+## TLDR Handover
+
+> Follow ONLY `templates/customer-communication/tldr-handover.md`.
+> This is a SEPARATE section from Leadership Summary. It is for **TSEs and managers** and CAN include technical detail.
+
+### Leadership Summary
+[Same ≤45 words non-technical summary as the Leadership Summary section above.]
+
+### Investigation
+[Technical details of what has been investigated — bullet points, include specifics.]
+
+### Next Steps
+[Technical next steps for the next TSE to follow.]
+
+### Need from Customer
+[What information or action is still needed from the customer.]
+
+### Important Links
+- [Link title](URL)
+
+---
+
+## Zoom Call Transcript
+
+> Auto-populated when a recording is uploaded to `assets/recordings/`.
+> Whisper extracts the transcript, then Cursor AI summarises it for a technical audience.
+> The raw transcript is never shown here — only the structured summary.
+
+**Source File:** [pending upload]
+**Call Date:** YYYY-MM-DD
+
+### Summary of Issue
+[Auto-generated from Zoom call transcript]
+
+### Findings on Call
+[Auto-generated from Zoom call transcript]
+
+### Workaround
+[Auto-generated from Zoom call transcript]
+
+---
+
+## Escalation Summary
+
+> Auto-generated via the **Generate Escalation Summary** button on the POD Ticket Dashboard "Escalation" tab.
+> Uses OpenAI to synthesise README.md and investigation notes into a JIRA-ready escalation ticket.
+> Can be regenerated at any time if investigation notes are updated.
+
+[Click "Generate Escalation Summary" on the Escalation tab to populate this section]
 
 ---
 
@@ -221,15 +303,15 @@ Datadog Technical Support
 **Escalation Date:** YYYY-MM-DD
 **JIRA Ticket:** SCRS-XXXX
 **Reason for Escalation:**
-[Why this needs TEE/engineering attention]
+[Why this needs engineering attention]
 
-**What I've Provided to TEE:**
+**What I've Provided to Engineering:**
 - [List of logs, configs, evidence]
 - [Summary of investigation]
 - [What's been tried and ruled out]
 
-**TEE Feedback:**
-[What TEE said, any new insights]
+**Engineering Feedback:**
+[What engineering said, any new insights]
 
 ---
 

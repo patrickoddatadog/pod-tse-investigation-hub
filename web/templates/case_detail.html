@@ -1,6 +1,6 @@
 {% extends "base.html" %}
 
-{% block title %}{{ case.id }} — Ticket Dash{% endblock %}
+{% block title %}{{ case.id }} — POD Ticket Dashboard{% endblock %}
 {% block page_title %}{{ case.id }}{% endblock %}
 
 {% block topbar_actions %}
@@ -8,29 +8,15 @@
 {% endblock %}
 
 {% block content %}
-<div class="case-header-bar">
-  <div class="case-meta-chips">
-    <span class="badge badge-status-{{ case.status|lower|replace(' ', '-') }}">{{ case.status }}</span>
-    <span class="badge badge-priority-{{ case.priority|lower }}">{{ case.priority }}</span>
-    <span class="chip chip-area">{{ case.product_area }}</span>
-  </div>
-  <div class="case-meta-info">
-    <span><strong>Customer:</strong> {{ case.customer }}</span>
-    <span><strong>TSE:</strong> {{ case.assigned }}</span>
-    <span><strong>Started:</strong> {{ case.started }}</span>
-  </div>
-</div>
-
 <div class="tabs" id="case-tabs">
-  <button class="tab active" data-tab="overview">Overview</button>
+  <button class="tab active" data-tab="overview">Proposed Customer Response</button>
   {% if case.has_notes %}
   <button class="tab" data-tab="notes">Investigation Notes</button>
   {% endif %}
   <button class="tab" data-tab="leadership">Leadership Summary</button>
-  <button class="tab" data-tab="zoom">Zoom Call</button>
-  {% if assets %}
-  <button class="tab" data-tab="assets">Assets ({{ assets|length }})</button>
-  {% endif %}
+  <button class="tab" data-tab="zoom">Zoom Call Prep</button>
+  <button class="tab" data-tab="transcript">Zoom Call Transcript</button>
+  <button class="tab" data-tab="escalation">Escalation</button>
 </div>
 
 <div class="tab-panels">
@@ -76,6 +62,20 @@
         {{ case.proposed_response_html | safe }}
       </div>
       <textarea class="sr-only" id="proposed-response-raw">{{ case.proposed_response_raw }}</textarea>
+    </div>
+    {% endif %}
+
+    {% if case.important_links_html %}
+    <div class="important-links-card">
+      <div class="important-links-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71"/><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71"/></svg>
+        <h3>Important Links</h3>
+        <button class="btn btn-sm btn-copy" onclick="copyCard(this, 'important-links-raw')">Copy</button>
+      </div>
+      <div class="important-links-body markdown-body">
+        {{ case.important_links_html | safe }}
+      </div>
+      <textarea class="sr-only" id="important-links-raw">{{ case.important_links_raw }}</textarea>
     </div>
     {% endif %}
 
@@ -138,30 +138,315 @@
     {% endif %}
   </div>
 
-  {% if assets %}
-  <div class="tab-panel" id="panel-assets">
-    <div class="assets-list">
-      {% for a in assets %}
-      <div class="asset-item">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V9z"/><polyline points="13 2 13 9 20 9"/></svg>
-        <span>{{ a }}</span>
+  <!-- ── Zoom Call Transcript ────────────────────────────────────── -->
+  <div class="tab-panel" id="panel-transcript">
+    <div id="transcript-summary-container">
+    {% if case.transcript_pending %}
+    <div class="section-card section-card-purple" id="transcript-pending-card">
+      <div class="section-card-body">
+        <div class="transcript-progress-steps">
+          <div class="progress-step progress-step-done">
+            <div class="progress-step-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
+            </div>
+            <div class="progress-step-text">
+              <strong>Transcript extracted</strong>
+              <span class="progress-hint">Raw transcript saved to notes.</span>
+            </div>
+          </div>
+          <div class="progress-step progress-step-active">
+            <div class="progress-step-icon">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+            </div>
+            <div class="progress-step-text">
+              <strong>Ready to summarise</strong>
+              <span class="progress-hint">Click the button below to generate a structured summary from the raw transcript.</span>
+            </div>
+          </div>
+        </div>
+        <div style="text-align: center; margin-top: 1rem;">
+          <button class="btn btn-primary btn-summarise" id="btn-summarise" onclick="summariseTranscript()">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>
+            Summarise Transcript
+          </button>
+        </div>
       </div>
-      {% endfor %}
+    </div>
+    {% elif case.zoom_transcript_html %}
+    <div class="section-card section-card-purple">
+      <div class="section-card-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <h3>Transcript Summary</h3>
+        <button class="btn btn-sm btn-copy" onclick="copyCard(this, 'transcript-raw')">Copy</button>
+      </div>
+      <div class="section-card-body markdown-body">
+        {{ case.zoom_transcript_html | safe }}
+      </div>
+      <textarea class="sr-only" id="transcript-raw">{{ case.zoom_transcript_raw }}</textarea>
+    </div>
+    {% endif %}
+    </div>
+
+    <div id="transcription-progress" style="display:none; margin-bottom: 1.5rem;">
+      <div class="section-card section-card-purple">
+        <div class="section-card-body">
+          <div class="transcript-progress-steps">
+            <div class="progress-step" id="step-transcribing">
+              <div class="progress-step-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg>
+              </div>
+              <div class="progress-step-text">
+                <strong>Transcribing audio with Whisper</strong>
+                <span class="progress-hint">Extracting speech from the recording — this may take a few minutes for longer files.</span>
+              </div>
+            </div>
+            <div class="progress-step progress-step-pending" id="step-formatting">
+              <div class="progress-step-icon">
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/></svg>
+              </div>
+              <div class="progress-step-text">
+                <strong>Writing transcript to notes</strong>
+                <span class="progress-hint">Adding raw transcript and template structure to investigation notes.</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div class="section-card section-card-purple" style="margin-top: 1.5rem;">
+      <div class="section-card-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><line x1="12" y1="19" x2="12" y2="23"/><line x1="8" y1="23" x2="16" y2="23"/></svg>
+        <h3>Upload Recording</h3>
+      </div>
+      <div class="section-card-body">
+
+        <form action="{{ url_for('upload_recording', case_id=case.id) }}" method="post" enctype="multipart/form-data" class="upload-form" id="upload-form">
+          <label class="upload-dropzone" id="dropzone">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+            <span class="upload-text">Drop a Zoom recording here, or click to browse</span>
+            <span class="upload-hint">Supports MP3, MP4, M4A, WAV, WebM, OGG, MOV</span>
+            <input type="file" name="recording" accept="audio/*,video/*" class="upload-input" onchange="handleFileSelect(this)">
+          </label>
+          <div class="upload-selected" id="upload-selected" style="display:none">
+            <span id="selected-filename"></span>
+            <button type="submit" class="btn btn-primary">Upload &amp; Transcribe</button>
+          </div>
+        </form>
+
+        {% if recordings %}
+        <div class="recordings-list">
+          <h4 class="tldr-subtitle">Uploaded Recordings</h4>
+          {% for r in recordings %}
+          <div class="asset-item">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/></svg>
+            <span>{{ r.name }}</span>
+            <span class="recording-size">{{ "%.1f"|format(r.size / 1048576) }} MB</span>
+          </div>
+          {% endfor %}
+        </div>
+        {% endif %}
+
+        {% if not case.zoom_transcript_html and not recordings and not transcribing %}
+        <div class="empty-state" style="margin-top: 1rem;">
+          <p>Upload a Zoom call recording — Whisper will extract the transcript and AI will automatically summarise it.</p>
+        </div>
+        {% endif %}
+
+      </div>
     </div>
   </div>
-  {% endif %}
+
+  <!-- ── Escalation ──────────────────────────────────────────────── -->
+  <div class="tab-panel" id="panel-escalation">
+    <div id="escalation-content-container">
+    {% if case.escalation_html %}
+    <div class="section-card section-card-red">
+      <div class="section-card-header">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+        <h3>Escalation Summary</h3>
+        <button class="btn btn-sm btn-copy" onclick="copyCard(this, 'escalation-raw')">Copy</button>
+      </div>
+      <div class="section-card-body markdown-body">
+        {{ case.escalation_html | safe }}
+      </div>
+      <textarea class="sr-only" id="escalation-raw">{{ case.escalation_raw }}</textarea>
+    </div>
+    <div style="text-align: center; margin-top: 1rem;">
+      <button class="btn btn-secondary" id="btn-regenerate-escalation" onclick="generateEscalation()">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg>
+        Regenerate Escalation Summary
+      </button>
+    </div>
+    {% else %}
+    <div class="empty-state">
+      <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+      <h3>No escalation summary yet</h3>
+      <p>Generate a JIRA-ready escalation summary from the investigation notes and case data.</p>
+      <div style="margin-top: 1rem;">
+        <button class="btn btn-primary btn-escalation" id="btn-generate-escalation" onclick="generateEscalation()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>
+          Generate Escalation Summary
+        </button>
+      </div>
+    </div>
+    {% endif %}
+    </div>
+  </div>
+
 </div>
 
 {% block scripts %}
 <script>
+var CASE_ID = {{ case.id | tojson }};
+var STATUS_URL = '/case/' + CASE_ID + '/transcription-status';
+var SUMMARISE_URL = '/case/' + CASE_ID + '/summarise-transcript';
+var ESCALATION_URL = '/case/' + CASE_ID + '/generate-escalation';
+var _pollTimer = null;
+var _polling = false;
+
+function generateEscalation() {
+  var btn = document.getElementById('btn-generate-escalation') || document.getElementById('btn-regenerate-escalation');
+  if (!btn) return;
+  var originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.innerHTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> ' +
+    'Generating…';
+
+  fetch(ESCALATION_URL, { method: 'POST' })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(result) {
+      if (result.ok && result.data.escalation_html) {
+        var container = document.getElementById('escalation-content-container');
+        container.innerHTML =
+          '<div class="section-card section-card-red">' +
+            '<div class="section-card-header">' +
+              '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>' +
+              '<h3>Escalation Summary</h3>' +
+              '<button class="btn btn-sm btn-copy" onclick="copyCard(this, \'escalation-raw\')">Copy</button>' +
+            '</div>' +
+            '<div class="section-card-body markdown-body">' + result.data.escalation_html + '</div>' +
+            '<textarea class="sr-only" id="escalation-raw">' + escapeTextarea(result.data.escalation_raw || '') + '</textarea>' +
+          '</div>' +
+          '<div style="text-align: center; margin-top: 1rem;">' +
+            '<button class="btn btn-secondary" id="btn-regenerate-escalation" onclick="generateEscalation()">' +
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><path d="M20.49 15a9 9 0 1 1-2.12-9.36L23 10"/></svg> ' +
+              'Regenerate Escalation Summary' +
+            '</button>' +
+          '</div>';
+      } else {
+        btn.disabled = false;
+        btn.innerHTML = originalHTML;
+        alert('Escalation generation failed: ' + (result.data.error || 'Unknown error'));
+      }
+    })
+    .catch(function(err) {
+      btn.disabled = false;
+      btn.innerHTML = originalHTML;
+      alert('Network error — please try again.');
+    });
+}
+
+function summariseTranscript() {
+  var btn = document.getElementById('btn-summarise');
+  if (!btn) return;
+  btn.disabled = true;
+  btn.innerHTML =
+    '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" class="spin"><path d="M21 12a9 9 0 1 1-6.219-8.56"/></svg> ' +
+    'Summarising…';
+
+  fetch(SUMMARISE_URL, { method: 'POST' })
+    .then(function(r) { return r.json().then(function(d) { return { ok: r.ok, data: d }; }); })
+    .then(function(result) {
+      if (result.ok && result.data.transcript_html) {
+        var container = document.getElementById('transcript-summary-container');
+        container.innerHTML =
+          '<div class="section-card section-card-purple">' +
+            '<div class="section-card-header">' +
+              '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' +
+              '<h3>Transcript Summary</h3>' +
+              '<button class="btn btn-sm btn-copy" onclick="copyCard(this, \'transcript-raw\')">Copy</button>' +
+            '</div>' +
+            '<div class="section-card-body markdown-body">' + result.data.transcript_html + '</div>' +
+            '<textarea class="sr-only" id="transcript-raw">' + escapeTextarea(result.data.transcript_raw || '') + '</textarea>' +
+          '</div>';
+      } else {
+        btn.disabled = false;
+        btn.innerHTML =
+          '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ' +
+          'Summarise Transcript';
+        alert('Summarisation failed: ' + (result.data.error || 'Unknown error'));
+      }
+    })
+    .catch(function(err) {
+      btn.disabled = false;
+      btn.innerHTML =
+        '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ' +
+        'Summarise Transcript';
+      alert('Network error — please try again.');
+    });
+}
+
+function activateTab(tabName) {
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
+  var btn = document.querySelector('.tab[data-tab="' + tabName + '"]');
+  var panel = document.getElementById('panel-' + tabName);
+  if (btn && panel) {
+    btn.classList.add('active');
+    panel.classList.add('active');
+  }
+}
 document.querySelectorAll('.tab').forEach(btn => {
   btn.addEventListener('click', () => {
-    document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
-    document.querySelectorAll('.tab-panel').forEach(p => p.classList.remove('active'));
-    btn.classList.add('active');
-    document.getElementById('panel-' + btn.dataset.tab).classList.add('active');
+    activateTab(btn.dataset.tab);
+    history.replaceState(null, '', '#' + btn.dataset.tab);
   });
 });
+(function() {
+  var hash = location.hash.replace('#', '');
+  if (hash === 'panel-transcript') hash = 'transcript';
+  if (hash && document.querySelector('.tab[data-tab="' + hash + '"]')) {
+    activateTab(hash);
+  }
+})();
+
+function handleFileSelect(input) {
+  var sel = document.getElementById('upload-selected');
+  var fname = document.getElementById('selected-filename');
+  if (input.files.length > 0) {
+    fname.textContent = input.files[0].name;
+    sel.style.display = 'flex';
+  } else {
+    sel.style.display = 'none';
+  }
+}
+
+(function() {
+  var dz = document.getElementById('dropzone');
+  if (!dz) return;
+  ['dragenter','dragover'].forEach(function(ev) {
+    dz.addEventListener(ev, function(e) { e.preventDefault(); dz.classList.add('dragover'); });
+  });
+  ['dragleave','drop'].forEach(function(ev) {
+    dz.addEventListener(ev, function(e) { e.preventDefault(); dz.classList.remove('dragover'); });
+  });
+  dz.addEventListener('drop', function(e) {
+    var input = dz.querySelector('input[type=file]');
+    if (e.dataTransfer.files.length > 0) {
+      input.files = e.dataTransfer.files;
+      handleFileSelect(input);
+    }
+  });
+})();
+
+function escapeTextarea(str) {
+  var div = document.createElement('div');
+  div.textContent = str;
+  return div.innerHTML;
+}
+
 function copyCard(btn, textareaId) {
   var el = document.getElementById(textareaId);
   if (el) {
@@ -170,6 +455,137 @@ function copyCard(btn, textareaId) {
       setTimeout(() => btn.textContent = 'Copy', 1500);
     });
   }
+}
+
+function showProgress(state) {
+  var el = document.getElementById('transcription-progress');
+  var stepT = document.getElementById('step-transcribing');
+  var stepF = document.getElementById('step-formatting');
+  if (!el) return;
+  el.style.display = 'block';
+
+  stepT.className = 'progress-step';
+  stepF.className = 'progress-step progress-step-pending';
+
+  if (state === 'transcribing') {
+    stepT.className = 'progress-step progress-step-active';
+    stepF.className = 'progress-step progress-step-pending';
+  } else if (state === 'done') {
+    stepT.className = 'progress-step progress-step-done';
+    stepF.className = 'progress-step progress-step-done';
+  }
+}
+
+function hideProgress() {
+  var el = document.getElementById('transcription-progress');
+  if (el) el.style.display = 'none';
+}
+
+function updateTranscriptContent(html, pending, raw) {
+  var container = document.getElementById('transcript-summary-container');
+  if (!container) return;
+
+  if (pending) {
+    container.innerHTML =
+      '<div class="section-card section-card-purple" id="transcript-pending-card">' +
+        '<div class="section-card-body">' +
+          '<div class="transcript-progress-steps">' +
+            '<div class="progress-step progress-step-done">' +
+              '<div class="progress-step-icon">' +
+                '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>' +
+              '</div>' +
+              '<div class="progress-step-text">' +
+                '<strong>Transcript extracted</strong>' +
+                '<span class="progress-hint">Raw transcript saved to notes.</span>' +
+              '</div>' +
+            '</div>' +
+            '<div class="progress-step progress-step-active">' +
+              '<div class="progress-step-icon">' +
+                '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' +
+              '</div>' +
+              '<div class="progress-step-text">' +
+                '<strong>Ready to summarise</strong>' +
+                '<span class="progress-hint">Click the button below to generate a structured summary from the raw transcript.</span>' +
+              '</div>' +
+            '</div>' +
+          '</div>' +
+          '<div style="text-align: center; margin-top: 1rem;">' +
+            '<button class="btn btn-primary btn-summarise" id="btn-summarise" onclick="summariseTranscript()">' +
+              '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg> ' +
+              'Summarise Transcript' +
+            '</button>' +
+          '</div>' +
+        '</div>' +
+      '</div>';
+    return;
+  }
+
+  if (!html) return;
+  container.innerHTML =
+    '<div class="section-card section-card-purple">' +
+      '<div class="section-card-header">' +
+        '<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>' +
+        '<h3>Transcript Summary</h3>' +
+        '<button class="btn btn-sm btn-copy" onclick="copyCard(this, \'transcript-raw\')">Copy</button>' +
+      '</div>' +
+      '<div class="section-card-body markdown-body">' + html + '</div>' +
+      '<textarea class="sr-only" id="transcript-raw">' + escapeTextarea(raw || '') + '</textarea>' +
+    '</div>';
+}
+
+function pollStatus() {
+  if (_polling) return;
+  _polling = true;
+  fetch(STATUS_URL)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      _polling = false;
+      var state = data.state;
+
+      if (state === 'transcribing') {
+        showProgress(state);
+        _pollTimer = setTimeout(pollStatus, 3000);
+      } else if (state === 'done') {
+        showProgress(state);
+        updateTranscriptContent(data.transcript_html, data.transcript_pending, data.transcript_raw);
+        setTimeout(hideProgress, 2000);
+      } else if (state === 'error') {
+        hideProgress();
+      }
+    })
+    .catch(function() {
+      _polling = false;
+      _pollTimer = setTimeout(pollStatus, 5000);
+    });
+}
+
+(function() {
+  {% if transcribing %}
+  showProgress('transcribing');
+  pollStatus();
+  {% else %}
+  fetch(STATUS_URL)
+    .then(function(r) { return r.json(); })
+    .then(function(data) {
+      if (data.state === 'transcribing') {
+        showProgress(data.state);
+        pollStatus();
+      } else if (data.state === 'done') {
+        updateTranscriptContent(data.transcript_html, data.transcript_pending, data.transcript_raw);
+      }
+    })
+    .catch(function() {});
+  {% endif %}
+})();
+
+var uploadForm = document.getElementById('upload-form');
+if (uploadForm) {
+  uploadForm.addEventListener('submit', function() {
+    setTimeout(function() {
+      showProgress('transcribing');
+      setTimeout(pollStatus, 2000);
+    }, 500);
+  });
 }
 </script>
 {% endblock %}

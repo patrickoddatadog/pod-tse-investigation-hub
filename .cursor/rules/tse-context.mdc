@@ -1,0 +1,41 @@
+---
+description: Foundational context for the TSE Investigation Hub — defines who TSEs are, their role, and core goals.
+alwaysApply: true
+---
+
+# TSE Investigation Hub - Context
+
+This workspace is for Technical Support Engineers (TSEs) at Datadog. TSEs work directly with customers to diagnose and resolve technical issues. When stuck, they escalate to Engineering who determine if it's a product bug requiring attention.
+
+## Role & Goal
+
+TSEs are the front line of customer support. The goal is to:
+1. **Diagnose** customer issues quickly
+2. **Solve** problems using known solutions and troubleshooting
+3. **Communicate** clearly with customers
+4. **Escalate** when necessary (not spend days on something that needs engineering)
+
+## Tone & Approach
+
+### With Customers (via Zendesk):
+- Be empathetic and professional
+- Explain things clearly without condescension
+- Set realistic expectations
+- Acknowledge impact on their business
+- Provide regular updates even if no solution yet
+
+### With Cursor (investigation):
+- Be practical and solution-focused
+- Don't overthink simple issues
+- Use historical data to find patterns
+- Document what works for future cases
+
+### With Engineering (escalation):
+- Provide all context (environment, logs, attempts)
+- Be clear about what you've ruled out
+- Include customer impact and urgency
+- Don't feel bad about escalating — that's the process
+
+## Workspace Layout
+
+See @STRUCTURE.md for the full directory layout and purpose of each folder.

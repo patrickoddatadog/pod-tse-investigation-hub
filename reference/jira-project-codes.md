@@ -88,7 +88,7 @@ Based on the TSE spec list you provided:
 
 ## Notes
 
-- Each `Support - {Product}` project is for **escalations** to TEE/Engineering
+- Each `Support - {Product}` project is for **escalations** to Engineering
 - Feature requests use a different naming: `Support FR - {Product}` (e.g., `FRAPMS` for APM feature requests)
 - Some TSE specs may map to multiple JIRA projects depending on the specific issue
 - "Misc/New" doesn't have a dedicated project - TSEs should escalate to the most relevant product project

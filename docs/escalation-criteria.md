@@ -1,4 +1,4 @@
-# When to Escalate to TEE
+# When to Escalate to Engineering
 
 This guide helps you decide when to escalate a case vs. continue troubleshooting.
 
@@ -8,13 +8,13 @@ This guide helps you decide when to escalate a case vs. continue troubleshooting
 
 ```
 Is it a product bug?
-├─ YES → Escalate to TEE
+├─ YES → Escalate to Engineering
 │
 Is it beyond TSE documentation/training?
-├─ YES → Escalate to TEE
+├─ YES → Escalate to Engineering
 │
 Have you spent 2+ days without progress?
-├─ YES → Escalate to TEE
+├─ YES → Escalate to Engineering
 │
 Is there a working workaround?
 ├─ NO → Consider escalating
@@ -105,7 +105,7 @@ Is customer impact critical (production down)?
    - Issue is with customer's application
    - Problem is in external service (AWS, GCP, etc.)
    - Network/firewall issues (not Datadog's)
-   - → Help customer debug, but don't escalate to TEE
+   - → Help customer debug, but don't escalate to Engineering
 
 ---
 
@@ -179,7 +179,7 @@ Use template: `templates/customer-communication/escalation-notice.md`
 
 ### 4. Stay Involved
 - Monitor JIRA ticket for updates
-- Answer TEE questions promptly
+- Answer Engineering questions promptly
 - Update customer with progress
 - Test any proposed solutions with customer
 
@@ -187,31 +187,31 @@ Use template: `templates/customer-communication/escalation-notice.md`
 
 ## What Happens After Escalation
 
-### TEE Review (24-48 hours)
-- TEE reviews your investigation
+### Engineering Review (24-48 hours)
+- Engineering reviews your investigation
 - May ask for additional information
 - Determines if it's a bug or needs deeper investigation
 
 ### Possible Outcomes
 
 1. **Quick Solution Found**
-   - TEE identifies solution from experience
+   - Engineering identifies solution from experience
    - You implement solution with customer
    - Case resolved
 
-2. **Escalated to Engineering**
-   - TEE confirms it's a product bug
+2. **Confirmed Product Bug**
+   - Engineering confirms it's a product bug
    - Creates internal engineering ticket
-   - TEE provides workaround if available
+   - Provides workaround if available
    - You keep customer updated on progress
 
 3. **More Information Needed**
-   - TEE needs additional logs/configs
+   - Engineering needs additional logs/configs
    - You work with customer to collect
    - Investigation continues
 
 4. **Not a Bug**
-   - TEE identifies it's configuration/usage issue
+   - Engineering identifies it's configuration/usage issue
    - Provides solution
    - You implement with customer
 
@@ -244,7 +244,7 @@ Use template: `templates/customer-communication/escalation-notice.md`
 ## Remember
 
 - **Escalating is not failing** - It's the right process for complex issues
-- **TEEs are partners** - Not critics, they're there to help
+- **Engineering are partners** - Not critics, they're there to help
 - **Customer care first** - Escalate if it's the right thing for the customer
 - **Document everything** - Makes escalations more effective and helps future cases
 - **Learn from escalations** - Review resolved escalations to expand your knowledge

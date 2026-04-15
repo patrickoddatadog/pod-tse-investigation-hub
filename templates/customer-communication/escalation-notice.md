@@ -1,19 +1,19 @@
 # Escalation Notice Template
 
-Use when escalating a case to TEE or engineering.
+Use when escalating a case to engineering.
 
 ---
 
-## Standard Escalation to TEE
+## Standard Escalation to Engineering
 
 Hi [Customer Name],
 
 I've been investigating this issue and want to ensure you get the best possible resolution.
 
-I'm escalating this to our Technical Escalation Engineering team who specialize in [product area / type of issue]. They'll be able to perform a deeper investigation into [specific aspect].
+I'm escalating this to our Engineering team who specialize in [product area / type of issue]. They'll be able to perform a deeper investigation into [specific aspect].
 
 **What happens next:**
-- A TEE will review the case within [timeframe, typically 24-48 hours]
+- An engineer will review the case within [timeframe, typically 24-48 hours]
 - I'll stay involved and keep you updated
 - You may be asked for additional technical details
 
@@ -111,7 +111,7 @@ Hi [Customer Name],
 I wanted to provide an update on your escalated case.
 
 **Current Status:**
-[Update from TEE/engineering]
+[Update from engineering]
 
 **Progress:**
 - [What's been done]
