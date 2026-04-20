@@ -98,7 +98,7 @@ Quit completely (**Cmd+Q**), then reopen the workspace. Atlassian and Glean will
 
 Ask Cursor:
 
-> "Search JIRA for open SCRS tickets"
+> "Investigate ZD-2337222"
 
 If you get results, you're all set.
 
